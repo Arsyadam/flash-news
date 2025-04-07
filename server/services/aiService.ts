@@ -57,7 +57,7 @@ class AIService {
       // Use custom prompt if provided, otherwise use default
       let prompt = customPrompt;
       if (!prompt) {
-        prompt = `Generate a concise and engaging Instagram post description (max 200 characters) for an IT news article titled "${title}" by ${author} from ${source}. Include relevant hashtags.`;
+        prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}, dengan gaya penulisan yang khas: informatif, padat, dan terstruktur; ikuti alur berikut — pembuka dengan unsur 5W1H, penjabaran tindakan atau rencana yang dilakukan ${author}, penjelasan tujuan atau dampak kebijakan, kutipan langsung dari ${author} jika tersedia, rincian isi kebijakan atau solusi yang diusulkan, serta penutup berupa strategi lanjutan atau arah kebijakan ke depan.`;
       } else {
         // Replace placeholders in custom prompt
         prompt = prompt.replace(/{title}/g, title)
@@ -118,10 +118,10 @@ class AIService {
     
     // Different templates for variety, especially when regenerating
     const templates = [
-      `Check out this insightful article on ${title}. ${author} from ${source} brings valuable perspectives on this important topic. ${hashtags}`,
-      `"${title}" - A must-read for IT professionals! ${author} delivers key insights in this comprehensive analysis. ${hashtags}`,
-      `Latest in tech: ${title}. Read what ${author} from ${source} has to say about this trending topic. ${hashtags}`,
-      `${title} - expertly written by ${author}. This ${source} article is essential reading for staying updated in the tech world. ${hashtags}`,
+      `Berita terkini: "${title}". ${author} dari ${source} telah menyampaikan kebijakan penting yang akan berdampak pada perkembangan teknologi di Indonesia. Kebijakan ini bertujuan untuk meningkatkan inovasi dan pertumbuhan ekonomi digital. ${hashtags}`,
+      `Program Systemetic mempersembahkan: "${title}". Menurut ${author} (${source}), langkah strategis ini akan membuka peluang baru bagi pelaku industri teknologi informasi. ${hashtags}`,
+      `${author} dalam wawancara dengan ${source} membahas "${title}". Kebijakan ini merupakan terobosan penting untuk mendukung ekosistem digital nasional dan meningkatkan daya saing Indonesia. ${hashtags}`,
+      `${title} - disampaikan oleh ${author}. Artikel ${source} ini mengupas tuntas rencana strategis pengembangan teknologi informasi yang akan diimplementasikan dalam waktu dekat. ${hashtags}`,
     ];
     
     // Choose a random template, or a specific one based on regenerate boolean
@@ -149,7 +149,7 @@ class AIService {
    * Extract keywords from the title for hashtag generation
    */
   private extractKeywords(title: string): string[] {
-    // Common IT-related keywords to look for
+    // Common IT-related keywords to look for (including Indonesian tech terms)
     const itKeywords = [
       'ai', 'artificial intelligence', 'machine learning', 'ml', 'deep learning',
       'cloud', 'cloud computing', 'aws', 'azure', 'gcp',
@@ -161,7 +161,14 @@ class AIService {
       'mobile', 'app', 'devops', 'agile', 'scrum',
       'innovation', 'startup', 'automation', 'robotics',
       'algorithm', 'api', 'microservice', 'serverless',
-      'saas', 'paas', 'iaas', 'infrastructure'
+      'saas', 'paas', 'iaas', 'infrastructure',
+      // Indonesian tech terms
+      'teknologi', 'kecerdasan buatan', 'pembelajaran mesin', 'komputasi awan',
+      'pengembangan', 'keamanan', 'privasi', 'digital', 'data', 'basis data',
+      'jaringan', 'aplikasi', 'inovasi', 'startup', 'otomatisasi',
+      'infrastruktur', 'transformasi digital', 'ekonomi digital', 'fintech', 'edtech',
+      'sistem', 'kebijakan', 'regulasi', 'layanan', 'program', 'pengembangan',
+      'teknologi informasi', 'ti', 'sistemetic', 'strategis'
     ];
     
     // Extract words from the title
@@ -189,8 +196,8 @@ class AIService {
       return foundKeywords.map(keyword => keyword.replace(/\s+/g, ''));
     }
     
-    // Fallback to generic tech hashtags
-    return ['tech', 'innovation', 'digital'];
+    // Fallback to generic Indonesian tech hashtags relevant to Systemetic
+    return ['Sistemetic', 'TeknologiInformasi', 'DigitalIndonesia'];
   }
 }
 
