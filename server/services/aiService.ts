@@ -6,17 +6,30 @@ class AIService {
     title: string, 
     author: string = 'Unknown', 
     source: string = 'Unknown',
-    regenerate: boolean = false
+    options: {
+      regenerate?: boolean;
+      customPrompt?: string;
+    } = {}
   ): Promise<string> {
     try {
-      // Try using Ollama API if it's accessible
-      const ollamaResponse = await this.tryOllamaAPI(title, author, source);
-      if (ollamaResponse) {
-        return ollamaResponse;
+      const { regenerate = false, customPrompt } = options;
+      
+      // If a custom prompt is provided, use it with the Ollama API
+      if (customPrompt) {
+        const ollamaResponse = await this.tryOllamaAPI(title, author, source, customPrompt);
+        if (ollamaResponse) {
+          return ollamaResponse;
+        }
+      } else {
+        // Try using Ollama API with the default prompt if it's accessible
+        const ollamaResponse = await this.tryOllamaAPI(title, author, source);
+        if (ollamaResponse) {
+          return ollamaResponse;
+        }
       }
 
       // Fallback to a generated description using the article metadata
-      return this.fallbackDescription(title, author, source, regenerate);
+      return this.fallbackDescription(title, author, source, regenerate, customPrompt);
     } catch (error) {
       console.error('Error generating description:', error);
       throw new Error('Failed to generate description');
@@ -26,7 +39,12 @@ class AIService {
   /**
    * Try to use Ollama API for description generation
    */
-  private async tryOllamaAPI(title: string, author: string, source: string): Promise<string | null> {
+  private async tryOllamaAPI(
+    title: string, 
+    author: string, 
+    source: string, 
+    customPrompt?: string
+  ): Promise<string | null> {
     try {
       // If an Ollama server is running locally or accessible
       // Replace with actual Ollama API endpoint if available
@@ -36,6 +54,17 @@ class AIService {
         return null;
       }
       
+      // Use custom prompt if provided, otherwise use default
+      let prompt = customPrompt;
+      if (!prompt) {
+        prompt = `Generate a concise and engaging Instagram post description (max 200 characters) for an IT news article titled "${title}" by ${author} from ${source}. Include relevant hashtags.`;
+      } else {
+        // Replace placeholders in custom prompt
+        prompt = prompt.replace(/{title}/g, title)
+                       .replace(/{author}/g, author)
+                       .replace(/{source}/g, source);
+      }
+      
       const response = await fetch(`${ollamaEndpoint}/api/generate`, {
         method: 'POST',
         headers: {
@@ -43,7 +72,7 @@ class AIService {
         },
         body: JSON.stringify({
           model: "llama2",
-          prompt: `Generate a concise and engaging Instagram post description (max 200 characters) for an IT news article titled "${title}" by ${author} from ${source}. Include relevant hashtags.`,
+          prompt,
           stream: false,
         }),
       });
@@ -67,16 +96,25 @@ class AIService {
     title: string,
     author: string,
     source: string,
-    regenerate: boolean
+    regenerate: boolean,
+    customPrompt?: string
   ): string {
-    // Extract keywords from the title
-    const keywords = this.extractKeywords(title);
+    // If there is a custom prompt but no Ollama, we'll use a variation of that prompt as a template
+    if (customPrompt) {
+      const processedPrompt = customPrompt
+        .replace(/{title}/g, title)
+        .replace(/{author}/g, author)
+        .replace(/{source}/g, source);
+      
+      // Extract a response from the prompt itself
+      const lines = processedPrompt.split('.');
+      if (lines.length > 1) {
+        return `${title} by ${author} from ${source}. ${this.generateHashtags(title)}`;
+      }
+    }
     
-    // Create hashtags from the keywords
-    const hashtags = keywords
-      .map(keyword => `#${keyword.charAt(0).toUpperCase() + keyword.slice(1)}`)
-      .slice(0, 3)
-      .join(' ');
+    // Extract keywords from the title
+    const hashtags = this.generateHashtags(title);
     
     // Different templates for variety, especially when regenerating
     const templates = [
@@ -92,6 +130,19 @@ class AIService {
       : 0;
     
     return templates[templateIndex];
+  }
+  
+  /**
+   * Generate hashtags based on the title
+   */
+  private generateHashtags(title: string): string {
+    const keywords = this.extractKeywords(title);
+    
+    // Create hashtags from the keywords
+    return keywords
+      .map(keyword => `#${keyword.charAt(0).toUpperCase() + keyword.slice(1)}`)
+      .slice(0, 3)
+      .join(' ');
   }
 
   /**

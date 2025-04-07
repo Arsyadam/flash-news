@@ -10,16 +10,20 @@ const descriptionSchema = z.object({
   author: z.string().optional(),
   source: z.string().optional(),
   regenerate: z.boolean().optional(),
+  customPrompt: z.string().optional(),
 });
 
 // Generate description based on article metadata
 router.post('/generate-description', async (req, res) => {
   try {
     // Validate the request body
-    const { title, author, source, regenerate } = descriptionSchema.parse(req.body);
+    const { title, author, source, regenerate, customPrompt } = descriptionSchema.parse(req.body);
     
     // Generate description
-    const description = await aiService.generateDescription(title, author, source, regenerate);
+    const description = await aiService.generateDescription(title, author, source, {
+      regenerate,
+      customPrompt
+    });
     
     res.json({ content: description });
   } catch (error) {

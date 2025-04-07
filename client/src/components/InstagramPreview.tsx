@@ -65,6 +65,17 @@ const InstagramPreview: React.FC = () => {
   const backgroundImage = article.imageUrl || selectedTemplate.imageUrl;
   const hasArticleImage = !!article.imageUrl;
   
+  // Handle image loading error
+  const [imageError, setImageError] = useState(false);
+  useEffect(() => {
+    // Reset image error when the article changes
+    setImageError(false);
+  }, [article.imageUrl]);
+  
+  const actualBackgroundImage = (imageError && hasArticleImage) 
+    ? selectedTemplate.imageUrl // Fallback to template if article image fails
+    : backgroundImage;
+  
   // Determine which overlay to use: custom uploaded one or the template's overlay
   const overlayImage = customOverlay || selectedTemplate.overlayUrl;
 
@@ -78,12 +89,16 @@ const InstagramPreview: React.FC = () => {
           className="instagram-template bg-gray-200 mx-auto max-w-sm relative"
         >
           {/* Background image */}
-          {backgroundImage ? (
+          {actualBackgroundImage ? (
             <img 
-              src={backgroundImage} 
+              src={actualBackgroundImage} 
               className="w-full h-full object-cover" 
-              alt={hasArticleImage ? "Article image" : "Template background"}
+              alt={hasArticleImage && !imageError ? "Article image" : "Template background"}
               crossOrigin="anonymous"
+              onError={() => {
+                console.log('Image failed to load:', actualBackgroundImage);
+                setImageError(true);
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-300">
@@ -154,16 +169,7 @@ const InstagramPreview: React.FC = () => {
             />
           </div>
           
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleTemplateChange}
-            className="w-full"
-            title="Change the template style"
-          >
-            <RefreshCw className="mr-2 h-5 w-5" />
-            Try Different Template
-          </Button>
+          {/* Template button removed as requested */}
           
           {customOverlay && (
             <Button
