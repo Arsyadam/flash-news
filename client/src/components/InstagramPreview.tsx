@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, FileUp, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { processImageUrl } from '@/lib/imageUtils';
 
 const InstagramPreview: React.FC = () => {
   const { state, dispatch } = useArticleContext();
@@ -61,9 +62,12 @@ const InstagramPreview: React.FC = () => {
     fileInputRef.current?.click();
   };
 
+  // Process image URL to handle potential CORS issues
+  const processedArticleImage = article.imageUrl ? processImageUrl(article.imageUrl) : null;
+  
   // Use article image if available, otherwise use template image
-  const backgroundImage = article.imageUrl || selectedTemplate.imageUrl;
-  const hasArticleImage = !!article.imageUrl;
+  const backgroundImage = processedArticleImage || selectedTemplate.imageUrl;
+  const hasArticleImage = !!processedArticleImage;
   
   // Handle image loading error
   const [imageError, setImageError] = useState(false);
@@ -90,16 +94,25 @@ const InstagramPreview: React.FC = () => {
         >
           {/* Background image */}
           {actualBackgroundImage ? (
-            <img 
-              src={actualBackgroundImage} 
-              className="w-full h-full object-cover" 
-              alt={hasArticleImage && !imageError ? "Article image" : "Template background"}
-              crossOrigin="anonymous"
-              onError={() => {
-                console.log('Image failed to load:', actualBackgroundImage);
-                setImageError(true);
-              }}
-            />
+            <div className="w-full h-full relative bg-gray-200 overflow-hidden">
+              <img 
+                src={actualBackgroundImage} 
+                className="w-full h-full object-cover absolute inset-0" 
+                alt={hasArticleImage && !imageError ? "Article image" : "Template background"}
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
+                loading="eager"
+                decoding="async"
+                onError={() => {
+                  console.log('Image failed to load:', actualBackgroundImage);
+                  setImageError(true);
+                }}
+              />
+              {/* Backup div if image fails to load but error doesn't trigger */}
+              <div className={`w-full h-full flex items-center justify-center absolute inset-0 ${imageError ? 'opacity-100' : 'opacity-0'}`}>
+                <ImageIcon className="h-16 w-16 text-gray-400" />
+              </div>
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-300">
               <ImageIcon className="h-16 w-16 text-gray-400" />
