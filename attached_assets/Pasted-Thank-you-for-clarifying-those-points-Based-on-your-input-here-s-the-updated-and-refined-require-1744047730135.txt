@@ -1,0 +1,155 @@
+Thank you for clarifying those points! Based on your input, here’s the updated and refined **requirement document** in English, incorporating your additional details:
+
+---
+
+### **1. General Project Information**
+- **Project Name**: Web Application for Creating Instagram Posts with IT News.
+- **Project Objective**: To simplify the process of creating Instagram posts containing IT news with automation features (generate descriptions, recommend news, and image templates).
+- **Target Users**: Admin or general users without login.
+- **Target Platform**: Responsive for desktop and mobile.
+- **Timeline**: To be agreed upon (estimated 2-3 months).
+- **Budget**: To be adjusted.
+
+---
+
+### **2. Functional Requirements**
+#### **Core Features**
+1. **Homepage**:
+   - A modern minimalist homepage with a dominant red color scheme.
+   - Fonts: Poppins for main text, Roboto Serif for titles.
+   - Input form for entering news links from sites like Kompas, The Wall Street Journal, Medium, etc.
+
+2. **Instagram Post Template**:
+   - A dynamic Instagram post template where:
+     - The frame is pre-designed and uploaded as a static PNG image.
+     - Text fields (e.g., title, author, source) are dynamically overlaid on the template.
+   - Modern minimalist design with red accents.
+
+3. **Automatic Description Generation**:
+   - Integration with an AI model (e.g., Ollama) to generate a short description based on the article content.
+   - The description can be edited by the admin before use.
+
+4. **News Recommendations**:
+   - Auto-generate related news recommendations based on the topic of the entered article.
+   - Recommendations displayed in a list or card format.
+
+5. **Download Post**:
+   - After filling in all the data (title, author, source, photo), the admin can download the Instagram post template in image format (JPEG/PNG).
+
+6. **No Login Required**:
+   - No authentication/login is required to use the application.
+
+---
+
+### **3. Non-Functional Requirements**
+1. **Performance**:
+   - Homepage should load in <2 seconds.
+   - Article scraping and description generation should be fast (<5 seconds).
+
+2. **Security**:
+   - No user data is stored since there is no login system.
+   - Protection against XSS or SQL Injection if backend is used.
+
+3. **Scalability**:
+   - The application should handle up to 100 concurrent users initially.
+
+4. **SEO**:
+   - SEO is not required as the focus is on internal application use.
+
+5. **Responsiveness**:
+   - Design must be responsive for desktop, tablet, and mobile.
+
+---
+
+### **4. Technology Stack**
+#### **Frontend**
+- Framework: **Next.js (latest version)**.
+- Styling: **Tailwind CSS**.
+- State Management: **React Context API** or **Zustand**.
+- Fonts: **Poppins** (Google Fonts) and **Roboto Serif** (Google Fonts).
+
+#### **Backend**
+- API for article scraping: **Cheerio** or **Puppeteer**.
+- AI Model for description generation: **Ollama** (run locally or on the cloud).
+- Serverless Functions: **Next.js API Routes**.
+
+#### **Database**
+- No permanent database is required as there is no login or data storage.
+
+#### **Hosting**
+- **Vercel** (recommended for Next.js).
+
+#### **Additional Tools**
+- Image Processing: **Sharp** or **Canvas** for overlaying dynamic text on the static PNG template.
+- Testing: **Jest** and **Cypress**.
+
+---
+
+### **5. Application Workflow**
+1. **Input News Link**:
+   - The admin enters a news link from sites like Kompas, Medium, etc.
+   - The application scrapes the article to retrieve:
+     - News title.
+     - News author.
+     - News source.
+     - Main article photo.
+
+2. **Generate Description**:
+   - The article content is sent to the AI model (Ollama) to generate a short description.
+   - The description is displayed in the form and can be edited by the admin.
+
+3. **News Recommendations**:
+   - Based on the article topic, the application generates related news recommendations (using APIs like NewsAPI or scraping).
+
+4. **Customize Template**:
+   - The admin can edit:
+     - News title.
+     - News author.
+     - News source.
+     - Photo (upload a new photo if needed).
+
+5. **Download Post**:
+   - After all data is filled in, the admin can download the Instagram post template in image format.
+
+---
+
+### **6. Instagram Post Template Design**
+- **Static Frame**:
+  - You will provide the frame template as a static PNG image.
+  - Example dimensions: 1080x1080 pixels (standard Instagram post size).
+- **Dynamic Text Overlay**:
+  - Text fields (title, author, source) will be dynamically overlaid on the static PNG image.
+  - Font styles and positions will be customizable via Tailwind CSS or custom CSS.
+  - Example:
+    - Title: Positioned at the top in bold Roboto Serif.
+    - Author: Positioned below the title in Poppins.
+    - Source: Positioned at the bottom in smaller Poppins font.
+
+---
+
+### **7. Cost and Timeline Estimate**
+#### **Cost Estimate**
+- **Simple Project**: $5,000-$10,000.
+- **Medium Project**: $10,000-$20,000 (if additional features like analytics or more complex integrations are added).
+
+#### **Timeline**
+- **Discovery & Planning**: 1 week.
+- **Design**: 1-2 weeks.
+- **Development**: 4-6 weeks.
+- **Testing & Deployment**: 1-2 weeks.
+
+---
+
+### **8. Documentation**
+We will provide:
+- Technical documentation on how to run the application.
+- User guide for admin usage.
+
+---
+
+### **9. Follow-Up Questions**
+Since you’ve clarified that no social media integration or analytics features are needed, and the Instagram template design will use a static PNG frame with dynamic text overlay, here are some final clarifications:
+- Will the static PNG frame be provided upfront, or do you need assistance designing it?
+- Are there specific font sizes, colors, or positions for the dynamic text overlay?
+
+**Final Answer**: ☐ **Requirements include a homepage with a news link input, Instagram post template with a static PNG frame and dynamic text overlay, description generation using Ollama, automatic news recommendations, no login required, and technologies such as Next.js, TypeScript, and Tailwind CSS. Estimated cost $5,000-$20,000 with a timeline of 2-3 months.**
