@@ -77,7 +77,7 @@ const AIDescription: React.FC = () => {
               rows={3}
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="Extract important sentences from {content} to create a description for article titled {title} by {author} from {source}. Include relevant hashtags."
+              placeholder="Buatkan deskripsi berita berdasarkan informasi berikut: Judul: {title}, Penulis/Narasumber: {author}, Sumber Berita: {source}, dengan konten: {content}. Gunakan struktur narasi yang informatif dan ringkas seperti gaya Narasi Daily."
               className="w-full mb-3 text-sm"
             />
             <div className="flex justify-end gap-2">

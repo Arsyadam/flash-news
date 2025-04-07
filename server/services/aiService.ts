@@ -60,19 +60,79 @@ class AIService {
       let prompt = customPrompt;
       if (!prompt) {
         if (content) {
-          prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}. 
-          
+          prompt = `Buatkan deskripsi berita berdasarkan informasi berikut:
+Judul: ${title}
+Penulis / Narasumber: ${author}
+Sumber Berita: ${source}
+
 KONTEN ARTIKEL: 
 ${content}
 
-PENTING: 
-1. Ambil kalimat-kalimat langsung dari konten artikel di atas, jangan membuat konten baru. 
-2. Pilih 3-5 kalimat penting dan susun dengan struktur yang efektif dalam maksimal 3 paragraf.
-3. Tugas kamu hanya memilih dan menata kalimat yang ada di konten artikel, bukan membuat kalimat baru.
-4. Jangan mengubah substansi atau menambahkan interpretasi.
-5. Jangan menyebutkan bahwa kamu AI atau menulis kata "ringkasan".`;
+Gunakan struktur narasi yang informatif dan ringkas seperti gaya Narasi Daily. Sertakan kutipan langsung dari ${author} jika tersedia.
+
+Struktur deskripsi yang harus diikuti:
+
+1. Lead / Pembuka Berita:
+   Ringkasan peristiwa utama berdasarkan judul. Jawab unsur 5W1H sebisa mungkin.
+
+2. Tindakan atau Rencana yang Diambil:
+   Jelaskan langkah konkret yang disampaikan atau dilakukan oleh narasumber.
+
+3. Tujuan atau Dampak:
+   Uraikan alasan atau dampak dari langkah tersebut bagi publik atau stakeholder tertentu.
+
+4. Kutipan Langsung (Opsional):
+   Tambahkan kutipan dari narasumber untuk menguatkan narasi.
+
+5. Rincian Strategi atau Isi Keputusan:
+   Jelaskan solusi, kebijakan, atau rencana lanjutan yang disebutkan.
+
+6. Penutup / Strategi Jangka Panjang:
+   Akhiri dengan strategi tambahan, kesimpulan, atau harapan dari narasumber.
+
+Sampaikan dalam minimal 4 paragraf. Gaya bahasa harus formal, padat, dan mudah dicerna pembaca awam. Cantumkan sumber berita di akhir artikel.
+
+PENTING:
+- Struktur paragraf harus rapi dan mudah dibaca
+- Pastikan deskripsi kompatibel untuk dibagikan di website berita teknologi
+- Hindari pengulangan informasi yang sama
+- Jangan menyebutkan bahwa kamu AI atau menulis kata "ringkasan"
+- Jangan menambahkan konten yang tidak ada di artikel asli`;
         } else {
-          prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}. PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.`;
+          prompt = `Buatkan deskripsi berita berdasarkan informasi berikut:
+Judul: ${title}
+Penulis / Narasumber: ${author}
+Sumber Berita: ${source}
+
+Gunakan struktur narasi yang informatif dan ringkas seperti gaya Narasi Daily. Sertakan kutipan langsung dari narasumber jika tersedia.
+
+Struktur deskripsi yang harus diikuti:
+
+1. Lead / Pembuka Berita:
+   Ringkasan peristiwa utama berdasarkan judul. Jawab unsur 5W1H sebisa mungkin.
+
+2. Tindakan atau Rencana yang Diambil:
+   Jelaskan langkah konkret yang disampaikan atau dilakukan oleh narasumber.
+
+3. Tujuan atau Dampak:
+   Uraikan alasan atau dampak dari langkah tersebut bagi publik atau stakeholder tertentu.
+
+4. Kutipan Langsung (Opsional):
+   Tambahkan kutipan dari narasumber untuk menguatkan narasi.
+
+5. Rincian Strategi atau Isi Keputusan:
+   Jelaskan solusi, kebijakan, atau rencana lanjutan yang disebutkan.
+
+6. Penutup / Strategi Jangka Panjang:
+   Akhiri dengan strategi tambahan, kesimpulan, atau harapan dari narasumber.
+
+Sampaikan dalam minimal 4 paragraf. Gaya bahasa harus formal, padat, dan mudah dicerna pembaca awam. Cantumkan sumber berita di akhir artikel.
+
+PENTING:
+- Struktur paragraf harus rapi dan mudah dibaca
+- Pastikan deskripsi kompatibel untuk dibagikan di website berita teknologi
+- Hindari pengulangan informasi yang sama
+- Jangan menyebutkan bahwa kamu AI atau menulis kata "ringkasan"`;
         }
       } else {
         // Replace placeholders in custom prompt
@@ -121,36 +181,50 @@ PENTING:
     customPrompt?: string,
     content?: string
   ): string {
-    // If we have article content and no Ollama, use sentences from the content
+    // If we have article content and no Ollama, create a structured description
     if (content) {
-      // Extract 3-5 sentences from the content that seem important
+      // Extract sentences from the content that seem important
       const sentences = content.split(/[.!?]/)
         .map(s => s.trim())
         .filter(s => s.length > 30); // Only use substantial sentences
       
-      // Get a few sentences from the beginning and middle of the article
-      const importantSentences: string[] = [];
-      
-      // Get first sentence if available (usually important)
       if (sentences.length > 0) {
-        importantSentences.push(sentences[0] + '.');
-      }
-      
-      // Get some from the middle (often contains core information)
-      const middleIndex = Math.floor(sentences.length / 2);
-      if (sentences.length > 2 && middleIndex < sentences.length) {
-        importantSentences.push(sentences[middleIndex] + '.');
-        
-        // Add one more if available
-        if (middleIndex + 1 < sentences.length) {
-          importantSentences.push(sentences[middleIndex + 1] + '.');
-        }
-      }
-      
-      // If we have at least 2 sentences, use them
-      if (importantSentences.length >= 2) {
         const hashtags = this.generateHashtags(title);
-        return `${importantSentences.join(' ')} ${hashtags}`;
+        
+        // Create a structured news description
+        let structuredContent = `${title}\n\n`;
+        
+        // Lead paragraph (2-3 sentences from beginning)
+        if (sentences.length >= 2) {
+          const leadSentences = sentences.slice(0, Math.min(3, sentences.length));
+          structuredContent += leadSentences.map(s => s + '.').join(' ') + '\n\n';
+        } else {
+          structuredContent += sentences[0] + '.\n\n';
+        }
+        
+        // Middle paragraph (action/impact)
+        const middleIndex = Math.floor(sentences.length / 2);
+        if (sentences.length > 4 && middleIndex < sentences.length) {
+          const middleSentences = sentences.slice(
+            middleIndex, 
+            Math.min(middleIndex + 2, sentences.length)
+          );
+          structuredContent += middleSentences.map(s => s + '.').join(' ') + '\n\n';
+        }
+        
+        // Additional information or details
+        if (sentences.length > 6) {
+          const detailSentences = sentences.slice(
+            Math.min(middleIndex + 2, sentences.length - 2),
+            Math.min(middleIndex + 4, sentences.length)
+          );
+          structuredContent += detailSentences.map(s => s + '.').join(' ') + '\n\n';
+        }
+        
+        // Closing with source attribution
+        structuredContent += `Sumber: ${source} ${hashtags}`;
+        
+        return structuredContent;
       }
     }
     

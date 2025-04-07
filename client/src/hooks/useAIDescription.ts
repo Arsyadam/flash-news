@@ -4,8 +4,42 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 // Default prompt template for AI description
-const DEFAULT_PROMPT =
-  'Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "{title}", disampaikan oleh {author}, dan bersumber dari {source}. Konten artikelnya adalah: "{content}". PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.';
+const DEFAULT_PROMPT = `Buatkan deskripsi berita berdasarkan informasi berikut:
+Judul: {title}
+Penulis / Narasumber: {author}
+Sumber Berita: {source}
+Konten artikelnya adalah: {content}
+
+Gunakan struktur narasi yang informatif dan ringkas seperti gaya Narasi Daily. Sertakan kutipan langsung dari narasumber jika tersedia.
+
+Struktur deskripsi yang harus diikuti:
+
+1. Lead / Pembuka Berita:
+   Ringkasan peristiwa utama berdasarkan judul. Jawab unsur 5W1H sebisa mungkin.
+
+2. Tindakan atau Rencana yang Diambil:
+   Jelaskan langkah konkret yang disampaikan atau dilakukan oleh narasumber.
+
+3. Tujuan atau Dampak:
+   Uraikan alasan atau dampak dari langkah tersebut bagi publik atau stakeholder tertentu.
+
+4. Kutipan Langsung (Opsional):
+   Tambahkan kutipan dari narasumber untuk menguatkan narasi.
+
+5. Rincian Strategi atau Isi Keputusan:
+   Jelaskan solusi, kebijakan, atau rencana lanjutan yang disebutkan.
+
+6. Penutup / Strategi Jangka Panjang:
+   Akhiri dengan strategi tambahan, kesimpulan, atau harapan dari narasumber.
+
+Sampaikan dalam minimal 4 paragraf. Gaya bahasa harus formal, padat, dan mudah dicerna pembaca awam. Cantumkan sumber berita di akhir artikel.
+
+PENTING:
+- Struktur paragraf harus rapi dan mudah dibaca
+- Pastikan deskripsi kompatibel untuk dibagikan di website berita teknologi
+- Hindari pengulangan informasi yang sama
+- Jangan menyebutkan bahwa kamu AI atau menulis kata "ringkasan"
+- Jangan menambahkan konten yang tidak ada di artikel asli`;
 
 export function useAIDescription() {
   const { state, dispatch } = useArticleContext();
