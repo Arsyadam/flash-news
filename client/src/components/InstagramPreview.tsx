@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, FileUp, Image as ImageIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { processImageUrl } from '@/lib/imageUtils';
+import { getProxiedImageUrl } from '@/lib/imageUtils';
 
 const InstagramPreview: React.FC = () => {
   const { state, dispatch } = useArticleContext();
@@ -63,7 +63,11 @@ const InstagramPreview: React.FC = () => {
   };
 
   // Process image URL to handle potential CORS issues
-  const processedArticleImage = article.imageUrl ? processImageUrl(article.imageUrl) : null;
+  const processedArticleImage = article.imageUrl 
+    ? (article.imageUrl.startsWith('data:') 
+        ? article.imageUrl 
+        : getProxiedImageUrl(article.imageUrl)) 
+    : null;
   
   // Use article image if available, otherwise use template image
   const backgroundImage = processedArticleImage || selectedTemplate.imageUrl;

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
+import { getProxiedImageUrl } from '@/lib/imageUtils';
 
 const ArticlePreview: React.FC = () => {
   const { article, updateArticleField } = useArticleExtractor();
@@ -78,9 +79,10 @@ const ArticlePreview: React.FC = () => {
                 {article.imageUrl ? (
                   <div className="relative">
                     <img 
-                      src={article.imageUrl} 
+                      src={article.imageUrl.startsWith('data:') ? article.imageUrl : getProxiedImageUrl(article.imageUrl)} 
                       alt="Featured article" 
                       className="mx-auto h-48 object-cover rounded-md"
+                      crossOrigin="anonymous"
                     />
                     <Button 
                       type="button" 

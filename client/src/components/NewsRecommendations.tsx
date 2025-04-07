@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { processImageUrl } from '@/lib/imageUtils';
+import { getProxiedImageUrl } from '@/lib/imageUtils';
 
 const NewsRecommendations: React.FC = () => {
   const { recommendations, useRecommendation } = useNewsRecommendations();
@@ -81,7 +81,7 @@ const NewsRecommendations: React.FC = () => {
                 >
                   {recommendation.imageUrl && (
                     <img 
-                      src={processImageUrl(recommendation.imageUrl)} 
+                      src={getProxiedImageUrl(recommendation.imageUrl)} 
                       className="w-full h-32 object-cover" 
                       alt={recommendation.title}
                       crossOrigin="anonymous" 

@@ -12,7 +12,9 @@ export function mightHaveCorsIssues(url: string): boolean {
     'cnnindonesia.com',
     'tempo.co',
     'akamaized.net',
-    'cloudfront.net'
+    'cloudfront.net',
+    'its.ac.id',
+    'amazonaws.com'
   ];
   
   // Check if the URL contains any of the problematic domains
@@ -30,12 +32,8 @@ export function getProxiedImageUrl(url: string): string {
     return url;
   }
   
-  // Don't proxy URLs unless they might have CORS issues
-  if (!mightHaveCorsIssues(url)) {
-    return url;
-  }
-  
-  // Create the proxy URL
+  // Always proxy external images to prevent CORS issues
+  // This ensures consistent behavior across different domains
   return `/api/image/proxy?url=${encodeURIComponent(url)}`;
 }
 
