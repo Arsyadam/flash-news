@@ -7,29 +7,30 @@ class AIService {
     author: string = 'Unknown', 
     source: string = 'Unknown',
     options: {
+      content?: string;
       regenerate?: boolean;
       customPrompt?: string;
     } = {}
   ): Promise<string> {
     try {
-      const { regenerate = false, customPrompt } = options;
+      const { content, regenerate = false, customPrompt } = options;
       
       // If a custom prompt is provided, use it with the Ollama API
       if (customPrompt) {
-        const ollamaResponse = await this.tryOllamaAPI(title, author, source, customPrompt);
+        const ollamaResponse = await this.tryOllamaAPI(title, author, source, customPrompt, content);
         if (ollamaResponse) {
           return ollamaResponse;
         }
       } else {
         // Try using Ollama API with the default prompt if it's accessible
-        const ollamaResponse = await this.tryOllamaAPI(title, author, source);
+        const ollamaResponse = await this.tryOllamaAPI(title, author, source, undefined, content);
         if (ollamaResponse) {
           return ollamaResponse;
         }
       }
 
       // Fallback to a generated description using the article metadata
-      return this.fallbackDescription(title, author, source, regenerate, customPrompt);
+      return this.fallbackDescription(title, author, source, regenerate, customPrompt, content);
     } catch (error) {
       console.error('Error generating description:', error);
       throw new Error('Failed to generate description');
@@ -43,7 +44,8 @@ class AIService {
     title: string, 
     author: string, 
     source: string, 
-    customPrompt?: string
+    customPrompt?: string,
+    content?: string
   ): Promise<string | null> {
     try {
       // If an Ollama server is running locally or accessible
@@ -57,12 +59,31 @@ class AIService {
       // Use custom prompt if provided, otherwise use default
       let prompt = customPrompt;
       if (!prompt) {
-        prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}. PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.`;
+        if (content) {
+          prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}. 
+          
+KONTEN ARTIKEL: 
+${content}
+
+PENTING: 
+1. Ambil kalimat-kalimat langsung dari konten artikel di atas, jangan membuat konten baru. 
+2. Pilih 3-5 kalimat penting dan susun dengan struktur yang efektif dalam maksimal 3 paragraf.
+3. Tugas kamu hanya memilih dan menata kalimat yang ada di konten artikel, bukan membuat kalimat baru.
+4. Jangan mengubah substansi atau menambahkan interpretasi.
+5. Jangan menyebutkan bahwa kamu AI atau menulis kata "ringkasan".`;
+        } else {
+          prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}. PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.`;
+        }
       } else {
         // Replace placeholders in custom prompt
         prompt = prompt.replace(/{title}/g, title)
                        .replace(/{author}/g, author)
                        .replace(/{source}/g, source);
+        
+        // Add content to custom prompt if available
+        if (content && prompt.includes('{content}')) {
+          prompt = prompt.replace(/{content}/g, content);
+        }
       }
       
       const response = await fetch(`${ollamaEndpoint}/api/generate`, {
@@ -97,14 +118,52 @@ class AIService {
     author: string,
     source: string,
     regenerate: boolean,
-    customPrompt?: string
+    customPrompt?: string,
+    content?: string
   ): string {
+    // If we have article content and no Ollama, use sentences from the content
+    if (content) {
+      // Extract 3-5 sentences from the content that seem important
+      const sentences = content.split(/[.!?]/)
+        .map(s => s.trim())
+        .filter(s => s.length > 30); // Only use substantial sentences
+      
+      // Get a few sentences from the beginning and middle of the article
+      const importantSentences: string[] = [];
+      
+      // Get first sentence if available (usually important)
+      if (sentences.length > 0) {
+        importantSentences.push(sentences[0] + '.');
+      }
+      
+      // Get some from the middle (often contains core information)
+      const middleIndex = Math.floor(sentences.length / 2);
+      if (sentences.length > 2 && middleIndex < sentences.length) {
+        importantSentences.push(sentences[middleIndex] + '.');
+        
+        // Add one more if available
+        if (middleIndex + 1 < sentences.length) {
+          importantSentences.push(sentences[middleIndex + 1] + '.');
+        }
+      }
+      
+      // If we have at least 2 sentences, use them
+      if (importantSentences.length >= 2) {
+        const hashtags = this.generateHashtags(title);
+        return `${importantSentences.join(' ')} ${hashtags}`;
+      }
+    }
+    
     // If there is a custom prompt but no Ollama, we'll use a variation of that prompt as a template
     if (customPrompt) {
       const processedPrompt = customPrompt
         .replace(/{title}/g, title)
         .replace(/{author}/g, author)
         .replace(/{source}/g, source);
+      
+      if (content && processedPrompt.includes('{content}')) {
+        processedPrompt.replace(/{content}/g, content);
+      }
       
       // Extract a response from the prompt itself
       const lines = processedPrompt.split('.');

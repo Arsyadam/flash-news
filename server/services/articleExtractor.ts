@@ -23,12 +23,14 @@ class ArticleExtractor {
       const author = this.extractAuthor($);
       const source = this.extractSource($, url);
       const imageUrl = this.extractImage($);
+      const content = this.extractContent($);
       
       return {
         title,
         author,
         source,
         imageUrl,
+        content,
       };
     } catch (error) {
       console.error('Error extracting article:', error);
@@ -164,6 +166,63 @@ class ArticleExtractor {
     }
     
     return null;
+  }
+  
+  /**
+   * Extract the article content
+   */
+  private extractContent($: cheerio.CheerioAPI): string {
+    // Try different common selectors for article content
+    const selectors = [
+      'article',
+      '.article-content',
+      '.entry-content',
+      '.post-content',
+      '.content',
+      'main',
+      '#content',
+      '[itemprop="articleBody"]'
+    ];
+    
+    let content = '';
+    
+    for (const selector of selectors) {
+      const articleElement = $(selector).first();
+      
+      if (articleElement.length) {
+        // Remove common non-content elements
+        articleElement.find('script, style, iframe, .social-share, .related-posts, .comments, .author-box, .navigation, footer, header, nav, aside, .sidebar').remove();
+        
+        // Extract all paragraphs
+        const paragraphs = articleElement.find('p');
+        if (paragraphs.length > 0) {
+          paragraphs.each((_, elem) => {
+            const text = $(elem).text().trim();
+            if (text.length > 20) { // Only include substantial paragraphs
+              content += text + '\n\n';
+            }
+          });
+        } else {
+          // Fallback: get all text from the article element
+          content = articleElement.text().trim().replace(/\s+/g, ' ');
+        }
+        
+        break;
+      }
+    }
+    
+    // If we couldn't find content with specific selectors, try to get all paragraphs
+    if (!content) {
+      const paragraphs = $('p');
+      paragraphs.each((_, elem) => {
+        const text = $(elem).text().trim();
+        if (text.length > 20) { // Only include substantial paragraphs
+          content += text + '\n\n';
+        }
+      });
+    }
+    
+    return content.trim();
   }
 }
 

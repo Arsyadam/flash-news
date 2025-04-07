@@ -9,6 +9,7 @@ export const articleSchema = z.object({
   author: z.string(),
   source: z.string(),
   imageUrl: z.string().url().optional(),
+  content: z.string().optional(),
 });
 
 export type Article = z.infer<typeof articleSchema>;

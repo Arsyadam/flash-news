@@ -71,13 +71,13 @@ const AIDescription: React.FC = () => {
           <div className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50">
             <h3 className="text-sm font-medium mb-2">Customize AI Prompt</h3>
             <p className="text-xs text-gray-500 mb-3">
-              Customize the prompt used to generate descriptions. Use variables: {'{title}'}, {'{author}'}, and {'{source}'}.
+              Customize the prompt used to generate descriptions. Use variables: {'{title}'}, {'{author}'}, {'{source}'}, and {'{content}'}.
             </p>
             <Textarea
               rows={3}
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="Write an engaging Instagram caption for an article titled {title} by {author} from {source}. Include relevant hashtags."
+              placeholder="Extract important sentences from {content} to create a description for article titled {title} by {author} from {source}. Include relevant hashtags."
               className="w-full mb-3 text-sm"
             />
             <div className="flex justify-end gap-2">

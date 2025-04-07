@@ -5,7 +5,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 // Default prompt template for AI description
 const DEFAULT_PROMPT =
-  'Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "{title}", disampaikan oleh {author}, dan bersumber dari {source}. PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.';
+  'Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "{title}", disampaikan oleh {author}, dan bersumber dari {source}. Konten artikelnya adalah: "{content}". PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.';
 
 export function useAIDescription() {
   const { state, dispatch } = useArticleContext();
@@ -42,7 +42,7 @@ export function useAIDescription() {
   // Helper function to process prompt template with article data
   const processPromptTemplate = (
     promptTemplate: string,
-    articleData: { title: string; author: string; source: string },
+    articleData: { title: string; author: string; source: string; content?: string },
   ) => {
     let processedPrompt = promptTemplate;
 
@@ -59,13 +59,21 @@ export function useAIDescription() {
       /{source}/g,
       articleData.source || "Unknown Source",
     );
+    
+    // Add content if available
+    if (articleData.content && promptTemplate.includes("{content}")) {
+      processedPrompt = processedPrompt.replace(
+        /{content}/g,
+        articleData.content || "",
+      );
+    }
 
     return processedPrompt;
   };
 
   // Regenerate description with specific prompt
   const regenerateWithPrompt = async (promptTemplate: string) => {
-    const { title, author, source } = state.article;
+    const { title, author, source, content } = state.article;
 
     if (!title) {
       toast({
@@ -85,6 +93,7 @@ export function useAIDescription() {
         title,
         author,
         source,
+        content,
       });
 
       const response = await apiRequest(
@@ -94,6 +103,7 @@ export function useAIDescription() {
           title,
           author,
           source,
+          content,
           regenerate: true,
           customPrompt: processedPrompt,
         },

@@ -9,6 +9,7 @@ const descriptionSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   author: z.string().optional(),
   source: z.string().optional(),
+  content: z.string().optional(),
   regenerate: z.boolean().optional(),
   customPrompt: z.string().optional(),
 });
@@ -17,10 +18,11 @@ const descriptionSchema = z.object({
 router.post('/generate-description', async (req, res) => {
   try {
     // Validate the request body
-    const { title, author, source, regenerate, customPrompt } = descriptionSchema.parse(req.body);
+    const { title, author, source, content, regenerate, customPrompt } = descriptionSchema.parse(req.body);
     
     // Generate description
     const description = await aiService.generateDescription(title, author, source, {
+      content,
       regenerate,
       customPrompt
     });

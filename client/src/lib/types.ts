@@ -13,6 +13,7 @@ export interface ArticleState {
   author: string;
   source: string;
   imageUrl: string | null;
+  content: string;
   isLoading: boolean;
   error: string | null;
 }

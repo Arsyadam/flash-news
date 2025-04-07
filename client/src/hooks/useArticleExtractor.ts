@@ -33,7 +33,8 @@ export function useArticleExtractor() {
           title: data.title,
           author: data.author,
           source: data.source,
-          imageUrl: data.imageUrl
+          imageUrl: data.imageUrl,
+          content: data.content || ''
         }
       });
       
@@ -67,10 +68,14 @@ export function useArticleExtractor() {
     dispatch({ type: 'SET_DESCRIPTION_LOADING' });
     
     try {
+      // Get content from the current article state
+      const content = state.article.content;
+      
       const response = await apiRequest('POST', '/api/ai/generate-description', { 
         title, 
         author, 
-        source 
+        source,
+        content
       });
       const data = await response.json();
       

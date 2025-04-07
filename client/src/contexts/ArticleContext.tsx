@@ -37,6 +37,7 @@ const initialState: ArticleContextState = {
     author: '',
     source: '',
     imageUrl: null,
+    content: '',
     isLoading: false,
     error: null,
   },
