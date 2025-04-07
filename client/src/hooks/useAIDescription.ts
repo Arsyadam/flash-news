@@ -5,7 +5,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 // Default prompt template for AI description
 const DEFAULT_PROMPT =
-  'Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "{title}", disampaikan oleh {author}, dan bersumber dari {source}, dengan gaya penulisan yang khas: informatif, padat, dan terstruktur; ikuti alur berikut — pembuka dengan unsur 5W1H, penjabaran tindakan atau rencana yang dilakukan {author}, penjelasan tujuan atau dampak kebijakan, kutipan langsung dari {author} jika tersedia, rincian isi kebijakan atau solusi yang diusulkan, serta penutup berupa strategi lanjutan atau arah kebijakan ke depan.';
+  'Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "{title}", disampaikan oleh {author}, dan bersumber dari {source}. PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.';
 
 export function useAIDescription() {
   const { state, dispatch } = useArticleContext();

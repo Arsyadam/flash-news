@@ -57,7 +57,7 @@ class AIService {
       // Use custom prompt if provided, otherwise use default
       let prompt = customPrompt;
       if (!prompt) {
-        prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}, dengan gaya penulisan yang khas: informatif, padat, dan terstruktur; ikuti alur berikut — pembuka dengan unsur 5W1H, penjabaran tindakan atau rencana yang dilakukan ${author}, penjelasan tujuan atau dampak kebijakan, kutipan langsung dari ${author} jika tersedia, rincian isi kebijakan atau solusi yang diusulkan, serta penutup berupa strategi lanjutan atau arah kebijakan ke depan.`;
+        prompt = `Buatkan deskripsi berita untuk program Systemetic berdasarkan judul "${title}", disampaikan oleh ${author}, dan bersumber dari ${source}. PENTING: Ambil kalimat-kalimat langsung dari konten berita aslinya, jangan membuat konten baru. Pilih kalimat-kalimat penting dan susun dengan struktur yang lebih efektif. Tugas AI hanya membantu menata susunan kalimat yang diambil dari konten berita tersebut tanpa mengubah substansi atau menambahkan interpretasi.`;
       } else {
         // Replace placeholders in custom prompt
         prompt = prompt.replace(/{title}/g, title)
@@ -116,12 +116,12 @@ class AIService {
     // Extract keywords from the title
     const hashtags = this.generateHashtags(title);
     
-    // Different templates for variety, especially when regenerating
+    // Simple templates that indicate this is just a summary of the original content
     const templates = [
-      `Berita terkini: "${title}". ${author} dari ${source} telah menyampaikan kebijakan penting yang akan berdampak pada perkembangan teknologi di Indonesia. Kebijakan ini bertujuan untuk meningkatkan inovasi dan pertumbuhan ekonomi digital. ${hashtags}`,
-      `Program Systemetic mempersembahkan: "${title}". Menurut ${author} (${source}), langkah strategis ini akan membuka peluang baru bagi pelaku industri teknologi informasi. ${hashtags}`,
-      `${author} dalam wawancara dengan ${source} membahas "${title}". Kebijakan ini merupakan terobosan penting untuk mendukung ekosistem digital nasional dan meningkatkan daya saing Indonesia. ${hashtags}`,
-      `${title} - disampaikan oleh ${author}. Artikel ${source} ini mengupas tuntas rencana strategis pengembangan teknologi informasi yang akan diimplementasikan dalam waktu dekat. ${hashtags}`,
+      `${title}. Ringkasan penting dari berita yang ditulis oleh ${author} di ${source}. ${hashtags}`,
+      `Artikel dari ${source}: "${title}". Disusun berdasarkan konten asli yang ditulis oleh ${author}. ${hashtags}`,
+      `Program Systemetic menyajikan "${title}" - berdasarkan artikel asli ${source}. ${hashtags}`,
+      `${title} - Ringkasan artikel ${source} oleh ${author}. ${hashtags}`,
     ];
     
     // Choose a random template, or a specific one based on regenerate boolean
