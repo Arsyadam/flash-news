@@ -95,9 +95,10 @@ router.post('/generate-comments', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error generating comments:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({ 
       error: 'Failed to generate comments', 
-      details: error.message 
+      details: errorMessage 
     });
   }
 });

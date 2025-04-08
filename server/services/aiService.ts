@@ -291,9 +291,12 @@ PENTING:
           // If we have content, include it in the prompt for better context
           const promptText = content 
             ? `
-Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran.
-Gunakan bahasa santai tapi tetap formal, untuk audience muda Indonesia.
+Buatkan judul hook untuk berita ini yang akan menarik perhatian Gen Z.
+Gunakan bahasa santai dan tidak formal yang populer di kalangan Gen Z Indonesia.
 Judul harus sesuai dengan konten artikel dan mencerminkan poin-poin utama artikel.
+PENTING: JANGAN menambahkan "Wajib Banget Cek Ini!" atau frasa serupa di akhir judul.
+Buatlah judul yang benar-benar baru dan kreatif berdasarkan konten, bukan sekadar menggubah judul asli.
+Judul harus tetap singkat, catchy, dan membuat penasaran.
 
 Judul asli:
 "${title}"
@@ -301,16 +304,19 @@ Judul asli:
 Konten artikel:
 ${content?.substring(0, 500)}${content?.length > 500 ? '...' : ''}
 
-Buatkan judul hook versi Gen Z (maksimal 15 kata):
+Buatkan judul hook versi Gen Z (maksimal 15 kata, gunakan gaya bahasa santai Gen Z):
 `
             : `
-Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran. 
-Gunakan bahasa santai tapi tetap formal, untuk audience muda Indonesia.
+Buatkan judul hook untuk berita ini yang akan menarik perhatian Gen Z.
+Gunakan bahasa santai dan tidak formal yang populer di kalangan Gen Z Indonesia.
+PENTING: JANGAN menambahkan "Wajib Banget Cek Ini!" atau frasa serupa di akhir judul.
+Buatlah judul yang benar-benar baru dan kreatif, bukan sekadar menggubah judul asli.
+Judul harus tetap singkat, catchy, dan membuat penasaran.
 
 Judul asli:
 "${title}"
 
-Buatkan judul hook versi Gen Z (maksimal 15 kata):
+Buatkan judul hook versi Gen Z (maksimal 15 kata, gunakan gaya bahasa santai Gen Z):
 `;
           
           const response = await fetch(`${ollamaEndpoint}/api/generate`, {
@@ -328,16 +334,26 @@ Buatkan judul hook versi Gen Z (maksimal 15 kata):
           if (response.ok) {
             const data = await response.json();
             if (data.response && data.response.trim()) {
-              return data.response.trim();
+              let hookTitle = data.response.trim()
+                .replace(/^[\s"']+(.*?)[\s"']+$/, '$1') // Remove quotes and whitespace
+                .replace(/^Judul hook versi Gen Z:?\s*/i, '') // Remove prompt echoing
+                .replace(/^["""«]|["""»]$/g, '') // Remove quotes
+                .replace(/Wajib Banget Cek Ini!$/i, '') // Remove unwanted suffix
+                .replace(/Wajib Cek[!]?$/i, ''); // Remove unwanted suffix
+                
+              // Only return if we have a valid response
+              if (hookTitle.length > 5 && hookTitle.length < 100) {
+                return hookTitle;
+              }
             }
           }
         } catch (error) {
-          console.warn('Ollama API not available for hook title:', error);
+          console.warn('Ollama API not available for hook title generation:', error);
         }
       }
       
-      // Fallback to a manually generated catchy title
-      return this.createHookTitle(title);
+      // If Ollama fails or is not available, use our context-aware pattern approach
+      return this.createHookTitle(title, content);
     } catch (error) {
       console.error('Error generating hook title:', error);
       throw new Error('Failed to generate hook title');
@@ -345,33 +361,145 @@ Buatkan judul hook versi Gen Z (maksimal 15 kata):
   }
   
   /**
-   * Create a hook title manually based on patterns for Gen Z
+   * Create a hook title manually based on article content for Gen Z
    */
-  private createHookTitle(title: string): string {
-    // Extract important words from the title
-    const words = title.split(/\s+/).filter(word => word.length > 3);
+  private createHookTitle(title: string, content?: string): string {
+    // If no content provided, extract important words from the title
+    const titleWords = title.split(/\s+/).filter(word => word.length > 3);
     
-    // Common Gen Z hook patterns
-    const hookPatterns = [
-      `${title}? Cek Dulu Gesss!`,
-      `${title} - Ini Faktanya yang Bikin Ngakak!`,
-      `Beneran Sih?! ${title}`,
-      `OMG! ${title} Bikin Netizen Auto Heboh!`,
-      `${title}. Gimana Menurut Lo?`,
-      `Nggak Nyangka! ${title} Ternyata...`,
-      `SERIUS! ${title} Yang Perlu Lo Tau`,
-      `${title}. Emang Iya Sih?`,
-      `${title} - Jangan Sampai Ketinggalan Info Ini!`,
-      `${title}. Udah Tau Belum?`
-    ];
+    // Extract main terms from content if available
+    let keyTerms: string[] = [];
+    let emotionalTone = "";
+    let topicCategory = "";
     
-    // Pick a pattern based on title length
-    const patternIndex = title.length % hookPatterns.length;
-    let generatedHook = hookPatterns[patternIndex];
+    if (content) {
+      // Extract sentences and analyze content
+      const sentences = content.split(/[.!?]/).map(s => s.trim()).filter(s => s.length > 20);
+      
+      // Extract meaningful terms from beginning of article
+      const contentStart = sentences.slice(0, Math.min(3, sentences.length)).join(' ');
+      const contentWords = contentStart.toLowerCase().split(/\s+/);
+      
+      keyTerms = contentWords
+        .filter(word => word.length > 5)
+        .filter(word => !['adalah', 'dengan', 'karena', 'tetapi', 'namun', 'seperti', 'bahwa'].includes(word))
+        .slice(0, 3);
+      
+      // Determine content emotional tone
+      const positiveWords = ['sukses', 'hebat', 'bagus', 'berhasil', 'inovasi', 'solusi', 'keberhasilan'];
+      const negativeWords = ['masalah', 'gagal', 'buruk', 'krisis', 'bencana', 'kegagalan', 'hambatan'];
+      const surpriseWords = ['mengejutkan', 'kejutan', 'tak terduga', 'mengagetkan', 'tiba-tiba', 'ternyata'];
+      
+      if (contentWords.some(word => positiveWords.includes(word))) {
+        emotionalTone = "positive";
+      } else if (contentWords.some(word => negativeWords.includes(word))) {
+        emotionalTone = "negative";
+      } else if (contentWords.some(word => surpriseWords.includes(word))) {
+        emotionalTone = "surprise";
+      } else {
+        emotionalTone = "neutral";
+      }
+      
+      // Determine content category
+      const techWords = ['teknologi', 'digital', 'aplikasi', 'software', 'komputer', 'internet', 'cyber'];
+      const businessWords = ['bisnis', 'ekonomi', 'keuangan', 'investor', 'saham', 'pasar', 'perusahaan'];
+      const socialWords = ['sosial', 'masyarakat', 'komunitas', 'budaya', 'viral', 'trending', 'influencer'];
+      
+      if (contentWords.some(word => techWords.includes(word))) {
+        topicCategory = "tech";
+      } else if (contentWords.some(word => businessWords.includes(word))) {
+        topicCategory = "business";
+      } else if (contentWords.some(word => socialWords.includes(word))) {
+        topicCategory = "social";
+      } else {
+        topicCategory = "general";
+      }
+    }
     
-    // If the hook becomes too long, use a simpler version
-    if (generatedHook.length > 80) {
-      return `${title}? Wajib Banget Cek Ini!`;
+    // Generate different hook patterns based on content analysis
+    let hookPatterns: string[] = [];
+    
+    // Use emotional tone and topic to craft more contextual hooks
+    if (emotionalTone === "positive") {
+      hookPatterns = [
+        `Good News! ${title} Bikin Gen Z Makin Optimis`,
+        `Kabar Baik Nih! ${title} Jadi Solusi Keren`,
+        `${title} Ini Bukti Kemajuan yang Gak Bisa Dilewatin!`,
+        `Yes! ${title} Akhirnya Kejadian Juga`,
+        `${title} - Inovasi Yang Bikin Masa Depan Makin Cerah`
+      ];
+    } else if (emotionalTone === "negative") {
+      hookPatterns = [
+        `Waduh! ${title} Jadi Warning Buat Kita Semua`,
+        `Hati-Hati! ${title} Perlu Jadi Perhatian Serius`,
+        `Crisis Alert! ${title} Dampaknya Bisa Kemana-mana`,
+        `${title} - Masalah Yang Harus Segera Diatasi`,
+        `Red Flag! ${title} Jangan Sampe Kena Dampaknya`
+      ];
+    } else if (emotionalTone === "surprise") {
+      hookPatterns = [
+        `OMG! ${title} Gak Ada yang Nyangka!`,
+        `Plot Twist! ${title} Bikin Netizen Kaget`,
+        `${title} - Fakta Mengejutkan yang Viral Banget`,
+        `Seriously?! ${title} Ini Mengubah Segalanya`,
+        `Wait, What?! ${title} Ternyata Beneran Terjadi`
+      ];
+    } else {
+      // Default/neutral hooks by topic category
+      if (topicCategory === "tech") {
+        hookPatterns = [
+          `Tech Update: ${title} Ini Bakal Ubah Cara Lo Main Gadget`,
+          `${title} - Inovasi Tech yang Wajib Lo Tau`,
+          `Digital Trend Alert! ${title} Jadi Game Changer`,
+          `Future is Now! ${title} Bikin Dunia Makin Canggih`,
+          `${title} - Tech Hack yang Belum Banyak yang Tau`
+        ];
+      } else if (topicCategory === "business") {
+        hookPatterns = [
+          `Money Talk! ${title} Impactnya ke Finansial Lo`,
+          `${title} - Business Move yang Perlu Lo Perhatiin`,
+          `Stonks! ${title} Bisa Jadi Peluang Baru`,
+          `Business Alert: ${title} Bakal Ubah Market`,
+          `${title} - Info Ekonomi yang Ngaruh ke Kantong Lo`
+        ];
+      } else if (topicCategory === "social") {
+        hookPatterns = [
+          `Trending Topic! ${title} Jadi Obrolan Semua Orang`,
+          `${title} - Social Issue yang Gak Boleh Lo Skip`,
+          `Viral Alert! ${title} Bikin TikTok & IG Heboh`,
+          `Everyone's Talking: ${title} Kenapa Sih?`,
+          `${title} - Fenomena Sosial yang Ngehits Banget`
+        ];
+      } else {
+        // General/Fallback hooks
+        hookPatterns = [
+          `Lo Wajib Tau! ${title} Jadi Topik Penting`,
+          `${title} - Info Penting yang Jangan Dilewatin`,
+          `Check This Out! ${title} Lagi Jadi Highlight`,
+          `${title} - Fakta Menarik yang Jarang Dibahas`,
+          `FYI: ${title} Bisa Jadi Game Changer`
+        ];
+      }
+    }
+    
+    // Add some keyword-specific hooks if we have content keywords
+    if (keyTerms.length > 0) {
+      const keyword = keyTerms[0];
+      hookPatterns.push(
+        `Soal ${keyword}, ${title} Ini Wajib Dipahami!`,
+        `${title} - ${keyword} Jadi Kunci Utamanya`,
+        `${keyword} Alert! ${title} Jangan Dilewatkan`
+      );
+    }
+    
+    // Pick a pattern randomly for more variation
+    const randomIndex = Math.floor(Math.random() * hookPatterns.length);
+    let generatedHook = hookPatterns[randomIndex];
+    
+    // If the hook becomes too long, create a simpler version
+    if (generatedHook.length > 100) {
+      const shortTitle = title.split(' ').slice(0, 7).join(' ');
+      return `${shortTitle}... - Info Penting Buat Lo!`;
     }
     
     return generatedHook;
