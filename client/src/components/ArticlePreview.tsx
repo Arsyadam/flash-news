@@ -1,13 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useArticleExtractor } from '../hooks/useArticleExtractor';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Loader2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { getProxiedImageUrl } from '@/lib/imageUtils';
-import { useToast } from '@/hooks/use-toast';
 
 const ArticlePreview: React.FC = () => {
   const { article, updateArticleField } = useArticleExtractor();
@@ -42,26 +41,13 @@ const ArticlePreview: React.FC = () => {
         <div className="space-y-4">
           <div>
             <Label htmlFor="article-title">Title</Label>
-            <div className="flex mt-1 gap-2">
-              <div className="flex-grow">
-                <Input 
-                  id="article-title"
-                  value={article.title}
-                  onChange={(e) => updateArticleField('title', e.target.value)}
-                  placeholder="Article title"
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="whitespace-nowrap"
-                onClick={generateHookTitle}
-                disabled={!article.title}
-              >
-                🔁 Generate Hook Title
-              </Button>
-            </div>
+            <Input 
+              id="article-title"
+              value={article.title}
+              onChange={(e) => updateArticleField('title', e.target.value)}
+              placeholder="Article title"
+              className="mt-1"
+            />
           </div>
           
           <div>
