@@ -91,14 +91,66 @@ export function useNewsComment() {
   };
   
   const getPresetComments = (articleTitle: string): string[] => {
-    // Generate preset example comments containing critical thinking elements
+    // Generate varied preset example comments with more casual tone and emojis
+    const titleShort = articleTitle.length > 30 
+      ? articleTitle.substring(0, 30) + '...' 
+      : articleTitle;
+    
+    // Create variations with different styles
     return [
-      `Tapi menurutku, ${articleTitle} ini terlalu fokus pada aspek teknisnya saja tanpa membahas dampak sosialnya.`,
-      `Bagaimana jika teknologi ini justru bikin ketergantungan? ${articleTitle} nggak bahas itu sama sekali.`,
-      `Kenapa gak ada pembahasan tentang keamanan data di ${articleTitle}? Padahal itu penting banget.`,
-      `Masalahnya itu implementasi dari teknologi di ${articleTitle} butuh infrastruktur yang mahal. Solusinya apa dong?`,
-      `Sebenarnya ${articleTitle} ini bisa jadi terobosan keren, tapi apakah sudah memikirkan akses untuk semua kalangan?`
+      `tapi menurutku, ${titleShort} ini terlalu fokus ke teknis doang tanpa bahas dampak sosialnya 🤔 gmn menurut lo?`,
+      `hmmm... gimana kalo teknologi di ${titleShort} malah bikin ketergantungan? beritanya ga bahas sisi ini sama sekali 😕`,
+      `kenapa sih ga ada pembahasan soal keamanan data di ${titleShort}?? padahal itu penting BGT tau!! 🔒`,
+      `masalahnya tuh implementasi dari teknologi di ${titleShort} butuh infrastruktur mahal. solusinya apa dong? 💸`,
+      `sebenernya ${titleShort} ini bisa jadi terobosan keren, tp apa udah mikirin akses buat semua kalangan? 🤷‍♀️`,
+      `menurut gw nih ya, ${titleShort} ini kurang mendalam analisisnya. ada yg setuju? 👀`,
+      `wah ${titleShort} bener2 bikin gw mikir... tp kok ya masih ada gap implementasinya ya? 🧐`,
+      `lo yakin ${titleShort} bakal sukses? aku ragu sih soalnya blm ada bukti konkretnya 😬`,
+      `kok rasanya ${titleShort} ini cuma ikut2an tren doang ya? inovasinya dimana coba? 🙄`,
+      `tapi kalo dipikir2 lagi, ${titleShort} ini bisa berdampak negatif ke pekerjaan orang ga sih? 💭`
     ];
+  };
+  
+  // Function to generate a new random comment
+  const generateRandomComment = (articleTitle: string): string => {
+    // More casual phrases with emoji and less formal capitalization
+    const starters = [
+      "menurut gw sih", "hmm sebenernya", "gue rasa", "kalo dipikir2", 
+      "tapi aneh ga sih", "kok kayaknya", "aku tuh heran", "ga ngerti deh", 
+      "jujur aja nih", "coba deh pikirin"
+    ];
+    
+    const critiques = [
+      "beritanya kurang mendalam 🤔", 
+      "datanya ga lengkap gitu 📊", 
+      "perspektifnya satu sisi banget 👁️",
+      "kurang ngebahas dampaknya ke masyarakat 🏙️",
+      "terlalu teknis tanpa solusi praktis 🛠️",
+      "kayak iklan terselubung deh 🎯",
+      "kurang bukti pendukung yang kuat 🔍",
+      "ga mempertimbangkan sisi ekonominya 💰",
+      "lupa bahas etika dan privasi 🔒",
+      "terlalu optimis tanpa lihat risikonya 📉"
+    ];
+    
+    const questions = [
+      "menurut lo gimana?", 
+      "ada yg setuju?", 
+      "apa cuma gw yg mikir gini?",
+      "bener ga sih pemikiran gw?",
+      "kira2 solusinya apa ya?",
+      "apa dampaknya ke kita?",
+      "bakal sukses ga ya?",
+      "worth it ga sih?",
+      "emang segitu pentingnya?",
+      "buang2 duit ga sih ini?"
+    ];
+    
+    const starter = starters[Math.floor(Math.random() * starters.length)];
+    const critique = critiques[Math.floor(Math.random() * critiques.length)];
+    const question = questions[Math.floor(Math.random() * questions.length)];
+    
+    return `${starter} ${articleTitle} ${critique}... ${question}`;
   };
   
   return {
@@ -110,6 +162,7 @@ export function useNewsComment() {
     submitComment,
     analyzeComment,
     getPresetComments,
+    generateRandomComment,
     isAnalyzing,
     analysis
   };
