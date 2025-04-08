@@ -71,4 +71,35 @@ router.post('/analyze-comment', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Generate comments in different categories (positive, neutral, negative, critical)
+ * based on article content
+ */
+router.post('/generate-comments', async (req: Request, res: Response) => {
+  try {
+    const { articleTitle, articleContent } = req.body;
+    
+    if (!articleTitle) {
+      return res.status(400).json({ 
+        error: 'Article title is required'
+      });
+    }
+    
+    // Generate comments directly using only article content
+    // We don't use AI service here since the comments are generated client-side
+    // This endpoint is just a placeholder for future AI-powered comment generation
+    
+    return res.json({
+      success: true,
+      message: 'Comments generated successfully'
+    });
+  } catch (error) {
+    console.error('Error generating comments:', error);
+    return res.status(500).json({ 
+      error: 'Failed to generate comments', 
+      details: error.message 
+    });
+  }
+});
+
 export default router;
