@@ -279,23 +279,38 @@ PENTING:
   }
 
   /**
-   * Generate a hook title for Gen Z audience
+   * Generate a hook title for Gen Z audience based on article content
    */
-  async generateHookTitle(title: string): Promise<string> {
+  async generateHookTitle(title: string, content?: string): Promise<string> {
     try {
       // Try Ollama first for the Gen Z style title
       const ollamaEndpoint = process.env.OLLAMA_API_URL;
       
       if (ollamaEndpoint) {
         try {
-          const prompt = `
-Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran. 
-Gunakan bahasa santai tapi tetap formal, untuk audince muda indonesia
+          // If we have content, include it in the prompt for better context
+          const promptText = content 
+            ? `
+Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran.
+Gunakan bahasa santai tapi tetap formal, untuk audience muda Indonesia.
+Judul harus sesuai dengan konten artikel dan mencerminkan poin-poin utama artikel.
 
 Judul asli:
 "${title}"
 
-Judul hook versi Gen Z:
+Konten artikel:
+${content?.substring(0, 500)}${content?.length > 500 ? '...' : ''}
+
+Buatkan judul hook versi Gen Z (maksimal 15 kata):
+`
+            : `
+Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran. 
+Gunakan bahasa santai tapi tetap formal, untuk audience muda Indonesia.
+
+Judul asli:
+"${title}"
+
+Buatkan judul hook versi Gen Z (maksimal 15 kata):
 `;
           
           const response = await fetch(`${ollamaEndpoint}/api/generate`, {
@@ -305,7 +320,7 @@ Judul hook versi Gen Z:
             },
             body: JSON.stringify({
               model: "mistral", // or "llama2-chat" as suggested in specs
-              prompt,
+              prompt: promptText,
               stream: false,
             }),
           });
@@ -360,6 +375,167 @@ Judul hook versi Gen Z:
     }
     
     return generatedHook;
+  }
+
+  /**
+   * Analyze comment to provide AI response if it contains critical thinking elements
+   */
+  async analyzeNewsComment(comment: string, articleTitle: string, articleContent?: string): Promise<{
+    insight: string;
+    followupQuestion: string;
+    shouldRespond: boolean;
+  }> {
+    try {
+      // Check if the comment contains critical thinking keywords
+      const criticalKeywords = [
+        'tapi', 'menurutku', 'menurut', 'gimana kalau', 'gimana kalo', 'bagaimana jika',
+        'kenapa', 'kenapa gak', 'kenapa tidak', 'masalahnya', 'solusinya', 
+        'sebenarnya', 'padahal', 'namun', 'mungkin', 'sepertinya', 'harusnya',
+        'apakah', 'apakah benar', 'sebetulnya', 'apa iya', 'benarkah', 
+        'bagaimana dengan', 'lebih baik', 'seharusnya'
+      ];
+      
+      // Check if any critical keywords are present in the comment
+      const containsCriticalThinking = criticalKeywords.some(keyword => 
+        comment.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (!containsCriticalThinking) {
+        return {
+          insight: '',
+          followupQuestion: '',
+          shouldRespond: false
+        };
+      }
+      
+      // The comment contains critical thinking elements, generate a response
+      const ollamaEndpoint = process.env.OLLAMA_API_URL;
+      
+      if (ollamaEndpoint) {
+        try {
+          // Construct a prompt that includes context about the article
+          const contextPrompt = articleContent
+            ? `
+Kamu adalah AI penasaran yang hanya akan merespons ketika ada komentar kritis dan mengundang diskusi.
+
+Artikel berjudul: "${articleTitle}"
+Ringkasan artikel: ${articleContent?.substring(0, 200)}${articleContent?.length > 200 ? '...' : ''}
+
+Komentar: "${comment}"
+
+Tanggapi komentar itu dengan format JSON dengan 2 properti berikut:
+1. insight: Perspektif baru atau insight tambahan (maksimal 2 kalimat, santai dan sesuai Gen Z)
+2. followupQuestion: Pertanyaan lanjutan untuk memperdalam diskusi (1 kalimat saja)
+
+Pastikan format tepat seperti ini:
+{
+  "insight": "insight kamu di sini",
+  "followupQuestion": "pertanyaan lanjutan kamu di sini"
+}
+`
+            : `
+Kamu adalah AI penasaran yang hanya akan merespons ketika ada komentar kritis dan mengundang diskusi.
+
+Artikel berjudul: "${articleTitle}"
+
+Komentar: "${comment}"
+
+Tanggapi komentar itu dengan format JSON dengan 2 properti berikut:
+1. insight: Perspektif baru atau insight tambahan (maksimal 2 kalimat, santai dan sesuai Gen Z)
+2. followupQuestion: Pertanyaan lanjutan untuk memperdalam diskusi (1 kalimat saja)
+
+Pastikan format tepat seperti ini:
+{
+  "insight": "insight kamu di sini",
+  "followupQuestion": "pertanyaan lanjutan kamu di sini"
+}
+`;
+          
+          const response = await fetch(`${ollamaEndpoint}/api/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "mistral", // or "llama2-chat" as suggested in specs
+              prompt: contextPrompt,
+              stream: false,
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.response && data.response.trim()) {
+              try {
+                // Try to parse the JSON response
+                let cleanedResponse = data.response.trim();
+                
+                // Ensure we're working with valid JSON by removing any text before or after the JSON object
+                const jsonStartIndex = cleanedResponse.indexOf('{');
+                const jsonEndIndex = cleanedResponse.lastIndexOf('}') + 1;
+                
+                if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+                  cleanedResponse = cleanedResponse.substring(jsonStartIndex, jsonEndIndex);
+                  const jsonData = JSON.parse(cleanedResponse);
+                  
+                  return {
+                    insight: jsonData.insight || '',
+                    followupQuestion: jsonData.followupQuestion || '',
+                    shouldRespond: true
+                  };
+                }
+              } catch (parseError) {
+                console.error('Error parsing Ollama response as JSON:', parseError);
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('Ollama API not available for comment analysis:', error);
+        }
+      }
+      
+      // Fallback responses without Ollama
+      return {
+        insight: this.generateFallbackInsight(comment, articleTitle),
+        followupQuestion: this.generateFallbackQuestion(comment, articleTitle),
+        shouldRespond: true
+      };
+    } catch (error) {
+      console.error('Error analyzing comment:', error);
+      throw new Error('Failed to analyze comment');
+    }
+  }
+  
+  /**
+   * Generate a fallback insight for a critical comment
+   */
+  private generateFallbackInsight(comment: string, articleTitle: string): string {
+    const insights = [
+      `Kamu bener banget! ${articleTitle} memang perlu dikaji lebih dalam lagi.`,
+      `Perspektif kamu menarik nih. Banyak yang belum melihat dari sudut pandang ini.`,
+      `Hmm, poin kritismu bikin aku mikir lebih jauh tentang implikasi ${articleTitle}.`,
+      `Analisismu bener sih, tapi kayaknya masih ada faktor lain yang perlu dipertimbangkan juga.`,
+      `Keren banget cara kamu mengkritisi berita ini! Bisa jadi input buat pengembangan ke depannya.`
+    ];
+    
+    const randomIndex = Math.floor(Math.random() * insights.length);
+    return insights[randomIndex];
+  }
+  
+  /**
+   * Generate a fallback follow-up question
+   */
+  private generateFallbackQuestion(comment: string, articleTitle: string): string {
+    const questions = [
+      `Menurut lo, solusi terbaik buat masalah ini apa ya?`,
+      `Gimana cara kita ngatasin kendala yang lo sebutin itu?`,
+      `Kalo lo jadi decision maker, langkah apa yang bakal lo ambil?`,
+      `Ada contoh lain yang mirip dengan kasus ini yang lo tau?`,
+      `Menurut lo, apa dampak jangka panjangnya buat industri teknologi?`
+    ];
+    
+    const randomIndex = Math.floor(Math.random() * questions.length);
+    return questions[randomIndex];
   }
 
   /**

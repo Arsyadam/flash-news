@@ -5,6 +5,7 @@ import ArticlePreview from '../components/ArticlePreview';
 import AIDescription from '../components/AIDescription';
 import NewsRecommendations from '../components/NewsRecommendations';
 import InstagramPreview from '../components/InstagramPreview';
+import NewsCommentSection from '../components/NewsCommentSection';
 import Footer from '../components/Footer';
 
 const Home: React.FC = () => {
@@ -21,6 +22,7 @@ const Home: React.FC = () => {
               <ArticlePreview />
               <AIDescription />
               <NewsRecommendations />
+              <NewsCommentSection />
             </div>
             
             <div className="lg:col-span-1 space-y-8">

@@ -141,7 +141,8 @@ export function useArticleExtractor() {
     
     try {
       const response = await apiRequest('POST', '/api/ai/hook-title', { 
-        title: state.article.title 
+        title: state.article.title,
+        content: state.article.content 
       });
       const data = await response.json();
       

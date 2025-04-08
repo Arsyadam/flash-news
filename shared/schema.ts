@@ -31,6 +31,22 @@ export const recommendationSchema = z.object({
 
 export type Recommendation = z.infer<typeof recommendationSchema>;
 
+// Comment Analysis for Kritik Berita feature
+export const commentSchema = z.object({
+  text: z.string().min(1, 'Comment cannot be empty'),
+  name: z.string().optional(),
+});
+
+export type Comment = z.infer<typeof commentSchema>;
+
+export const commentAnalysisSchema = z.object({
+  insight: z.string(),
+  followupQuestion: z.string(),
+  shouldRespond: z.boolean(),
+});
+
+export type CommentAnalysis = z.infer<typeof commentAnalysisSchema>;
+
 // Original DB schemas (keeping as is not to break existing code)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

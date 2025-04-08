@@ -24,22 +24,50 @@ router.post('/generate-description', async (req: Request, res: Response) => {
 });
 
 /**
- * Generate a catchy "hook" title for Gen Z audience
+ * Generate a catchy "hook" title for Gen Z audience based on article title and content
  */
 router.post('/hook-title', async (req: Request, res: Response) => {
   try {
-    const { title } = req.body;
+    const { title, content } = req.body;
     
     if (!title) {
       return res.status(400).json({ error: 'Missing title field' });
     }
     
-    const hookTitle = await aiService.generateHookTitle(title);
+    const hookTitle = await aiService.generateHookTitle(title, content);
     
     res.json({ hookTitle });
   } catch (error) {
     console.error('Error generating hook title:', error);
     res.status(500).json({ error: 'Failed to generate hook title' });
+  }
+});
+
+/**
+ * Analyze a comment for a news article and provide AI responses
+ * This is for the "Kritik Berita" feature
+ */
+router.post('/analyze-comment', async (req: Request, res: Response) => {
+  try {
+    const { comment, articleTitle, articleContent } = req.body;
+    
+    if (!comment || !articleTitle) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: 'Both comment and articleTitle are required'
+      });
+    }
+    
+    const analysisResult = await aiService.analyzeNewsComment(
+      comment,
+      articleTitle,
+      articleContent
+    );
+    
+    res.json(analysisResult);
+  } catch (error) {
+    console.error('Error analyzing comment:', error);
+    res.status(500).json({ error: 'Failed to analyze comment' });
   }
 });
 
