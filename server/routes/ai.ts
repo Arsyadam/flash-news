@@ -1,41 +1,45 @@
-import express from 'express';
+import { Router, Request, Response } from 'express';
 import { aiService } from '../services/aiService';
-import { z } from 'zod';
 
-const router = express.Router();
+const router = Router();
 
-// Description generation schema
-const descriptionSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  author: z.string().optional(),
-  source: z.string().optional(),
-  content: z.string().optional(),
-  regenerate: z.boolean().optional(),
-  customPrompt: z.string().optional(),
-});
-
-// Generate description based on article metadata
-router.post('/generate-description', async (req, res) => {
+/**
+ * Generate an AI-powered description for an article
+ */
+router.post('/generate-description', async (req: Request, res: Response) => {
   try {
-    // Validate the request body
-    const { title, author, source, content, regenerate, customPrompt } = descriptionSchema.parse(req.body);
+    const { title, author, source, content } = req.body;
     
-    // Generate description
-    const description = await aiService.generateDescription(title, author, source, {
-      content,
-      regenerate,
-      customPrompt
-    });
+    if (!title || !author || !source) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const description = await aiService.generateDescription(title, author, source, { content });
     
     res.json({ content: description });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ message: error.errors[0].message });
-    } else if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unknown error occurred' });
+    console.error('Error generating description:', error);
+    res.status(500).json({ error: 'Failed to generate description' });
+  }
+});
+
+/**
+ * Generate a catchy "hook" title for Gen Z audience
+ */
+router.post('/hook-title', async (req: Request, res: Response) => {
+  try {
+    const { title } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({ error: 'Missing title field' });
     }
+    
+    const hookTitle = await aiService.generateHookTitle(title);
+    
+    res.json({ hookTitle });
+  } catch (error) {
+    console.error('Error generating hook title:', error);
+    res.status(500).json({ error: 'Failed to generate hook title' });
   }
 });
 

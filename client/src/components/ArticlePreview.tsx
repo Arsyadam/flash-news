@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, RefreshCw } from 'lucide-react';
 import { getProxiedImageUrl } from '@/lib/imageUtils';
 
 const ArticlePreview: React.FC = () => {
-  const { article, updateArticleField } = useArticleExtractor();
+  const { article, updateArticleField, generateHookTitle, isGeneratingHookTitle } = useArticleExtractor();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,13 +41,26 @@ const ArticlePreview: React.FC = () => {
         <div className="space-y-4">
           <div>
             <Label htmlFor="article-title">Title</Label>
-            <Input 
-              id="article-title"
-              value={article.title}
-              onChange={(e) => updateArticleField('title', e.target.value)}
-              placeholder="Article title"
-              className="mt-1"
-            />
+            <div className="flex gap-2 mt-1">
+              <Input 
+                id="article-title"
+                value={article.title}
+                onChange={(e) => updateArticleField('title', e.target.value)}
+                placeholder="Article title"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={generateHookTitle}
+                disabled={isGeneratingHookTitle || !article.title}
+                className="whitespace-nowrap"
+                title="Generate catchy title for Gen Z audience"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingHookTitle ? 'animate-spin' : ''}`} />
+                Generate Hook Title
+              </Button>
+            </div>
           </div>
           
           <div>

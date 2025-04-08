@@ -279,6 +279,90 @@ PENTING:
   }
 
   /**
+   * Generate a hook title for Gen Z audience
+   */
+  async generateHookTitle(title: string): Promise<string> {
+    try {
+      // Try Ollama first for the Gen Z style title
+      const ollamaEndpoint = process.env.OLLAMA_API_URL;
+      
+      if (ollamaEndpoint) {
+        try {
+          const prompt = `
+Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran. 
+Gunakan bahasa santai tapi tetap formal, untuk audince muda indonesia
+
+Judul asli:
+"${title}"
+
+Judul hook versi Gen Z:
+`;
+          
+          const response = await fetch(`${ollamaEndpoint}/api/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "mistral", // or "llama2-chat" as suggested in specs
+              prompt,
+              stream: false,
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.response && data.response.trim()) {
+              return data.response.trim();
+            }
+          }
+        } catch (error) {
+          console.warn('Ollama API not available for hook title:', error);
+        }
+      }
+      
+      // Fallback to a manually generated catchy title
+      return this.createHookTitle(title);
+    } catch (error) {
+      console.error('Error generating hook title:', error);
+      throw new Error('Failed to generate hook title');
+    }
+  }
+  
+  /**
+   * Create a hook title manually based on patterns for Gen Z
+   */
+  private createHookTitle(title: string): string {
+    // Extract important words from the title
+    const words = title.split(/\s+/).filter(word => word.length > 3);
+    
+    // Common Gen Z hook patterns
+    const hookPatterns = [
+      `${title}? Cek Dulu Gesss!`,
+      `${title} - Ini Faktanya yang Bikin Ngakak!`,
+      `Beneran Sih?! ${title}`,
+      `OMG! ${title} Bikin Netizen Auto Heboh!`,
+      `${title}. Gimana Menurut Lo?`,
+      `Nggak Nyangka! ${title} Ternyata...`,
+      `SERIUS! ${title} Yang Perlu Lo Tau`,
+      `${title}. Emang Iya Sih?`,
+      `${title} - Jangan Sampai Ketinggalan Info Ini!`,
+      `${title}. Udah Tau Belum?`
+    ];
+    
+    // Pick a pattern based on title length
+    const patternIndex = title.length % hookPatterns.length;
+    let generatedHook = hookPatterns[patternIndex];
+    
+    // If the hook becomes too long, use a simpler version
+    if (generatedHook.length > 80) {
+      return `${title}? Wajib Banget Cek Ini!`;
+    }
+    
+    return generatedHook;
+  }
+
+  /**
    * Extract keywords from the title for hashtag generation
    */
   private extractKeywords(title: string): string[] {

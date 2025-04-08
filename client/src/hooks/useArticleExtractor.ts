@@ -7,6 +7,7 @@ export function useArticleExtractor() {
   const { state, dispatch } = useArticleContext();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingHookTitle, setIsGeneratingHookTitle] = useState(false);
   
   const extractArticle = async (url: string) => {
     if (!url) {
@@ -126,6 +127,47 @@ export function useArticleExtractor() {
     }
   };
   
+  const generateHookTitle = async () => {
+    if (!state.article.title) {
+      toast({
+        title: "Error",
+        description: "Article title is missing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingHookTitle(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/ai/hook-title', { 
+        title: state.article.title 
+      });
+      const data = await response.json();
+      
+      if (data.hookTitle) {
+        dispatch({
+          type: 'SET_ARTICLE_DATA',
+          payload: { title: data.hookTitle }
+        });
+        
+        toast({
+          title: "Success",
+          description: "Generated a catchy title for Gen Z audience",
+        });
+      }
+    } catch (error) {
+      console.error('Error generating hook title:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to generate a catchy title',
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingHookTitle(false);
+    }
+  };
+
   const updateArticleField = (field: string, value: string) => {
     dispatch({
       type: 'SET_ARTICLE_DATA',
@@ -136,7 +178,9 @@ export function useArticleExtractor() {
   return {
     article: state.article,
     extractArticle,
+    generateHookTitle,
     updateArticleField,
-    isSubmitting
+    isSubmitting,
+    isGeneratingHookTitle
   };
 }
