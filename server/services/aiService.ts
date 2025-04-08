@@ -445,6 +445,81 @@ ${combinedHashtags}`;
   /**
    * Generate recommended critical comments based on article content
    */
+  /**
+   * Generate a hook title (Gen-Z style) from original title
+   */
+  async generateHookTitle(title: string): Promise<string> {
+    try {
+      // Create a prompt for generating a hook title
+      const prompt = `Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran. 
+Gunakan bahasa santai tapi tetap formal, untuk audiens muda Indonesia.
+
+Judul asli:
+"${title}"
+
+Judul hook versi Gen Z:`;
+
+      // Try using Ollama API
+      try {
+        const ollamaEndpoint = process.env.OLLAMA_API_URL;
+        
+        if (ollamaEndpoint) {
+          const response = await fetch(`${ollamaEndpoint}/api/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "mistral",
+              prompt,
+              stream: false,
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.response.trim();
+          }
+        }
+      } catch (error) {
+        console.warn('Ollama API not available for hook title generation:', error);
+      }
+      
+      // Fallback hook title generation if Ollama fails
+      return this.createLocalHookTitle(title);
+    } catch (error) {
+      console.error('Error generating hook title:', error);
+      return title; // Return original title as fallback
+    }
+  }
+
+  /**
+   * Create a local hook title if Ollama is not available
+   */
+  private createLocalHookTitle(title: string): string {
+    // Common patterns for Gen-Z hooks
+    const patterns = [
+      `"${title}"? Cek Dulu Gesss!`,
+      `OMG! ${title} Bikin Geger Netizen!`,
+      `Auto Kaget! ${title} Ternyata...`,
+      `${title}? Yakin Lo Udah Tau Faktanya?`,
+      `Nggak Nyangka! ${title} Terungkap!`,
+      `${title}? Ini Yang Sebenarnya Terjadi!`,
+      `Gokil Sih! ${title} Jadi Trending!`,
+      `${title} - Kok Bisa Sih?!`,
+      `Fix! ${title} Bikin Penasaran`,
+      `${title} - Benarkah Seheboh Itu?`
+    ];
+    
+    // Choose a random pattern
+    const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+    
+    return randomPattern;
+  }
+
+  /**
+   * Generate recommended critical comments based on article content
+   */
   async generateCriticalComment(title: string, content: string): Promise<string> {
     try {
       // First try using Ollama if available

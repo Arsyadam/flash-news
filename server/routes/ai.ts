@@ -15,6 +15,11 @@ const descriptionSchema = z.object({
   genZStyle: z.boolean().optional(),
 });
 
+// Hook title generation schema
+const hookTitleSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+});
+
 // Critical comment generation schema
 const commentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -47,7 +52,27 @@ router.post('/generate-description', async (req, res) => {
   }
 });
 
-// Generate critical comment
+// Generate hook title for Gen-Z audience
+router.post('/generate-hook-title', async (req, res) => {
+  try {
+    // Validate the request body
+    const { title } = hookTitleSchema.parse(req.body);
+    
+    // Generate hook title
+    const hookTitle = await aiService.generateHookTitle(title);
+    
+    res.json({ title: hookTitle });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0].message });
+    } else if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'An unknown error occurred' });
+    }
+  }
+});
+
 router.post('/generate-comment', async (req, res) => {
   try {
     // Validate the request body

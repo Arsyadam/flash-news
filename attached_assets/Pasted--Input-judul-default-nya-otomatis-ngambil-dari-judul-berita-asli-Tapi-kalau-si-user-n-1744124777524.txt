@@ -1,0 +1,70 @@
+
+- **Input judul default-nya** otomatis ngambil dari **judul berita asli**.
+- Tapi kalau si user ngerasa judul itu kurang catchy atau kurang “Gen Z banget”, dia bisa **klik tombol "Generate Hook Title"** di samping input-nya.
+- Pas tombol diklik, sistem bakal nge-*generate* versi judul yang **lebih hook dan Gen Z banget**.
+
+---
+
+### ✅ UX/UI Flow-nya kira-kira begini:
+
+1. **Input Title (Default)**  
+   Misalnya: `"Pemerintah Luncurkan Program Transportasi Ramah Lingkungan"`
+
+2. **Button**: `🔁 Generate Hook Title`  
+   Kalau diklik, langsung muncul judul alternatif kaya:
+   > **"Transportasi Makin Canggih, Tapi Beneran Ramah Lingkungan? Cek Dulu Gesss!"**
+
+---
+
+### 💻 Logic Prompt untuk Ollama-nya:
+Kamu bisa pakai model `mistral` atau `llama2-chat` dengan prompt seperti ini:
+
+```python
+prompt = f"""
+Ubah judul berita berikut menjadi versi yang menarik perhatian Gen Z dan membuat penasaran. Gunakan bahasa santai tapi tetap formal, untuk audince muda indonesia
+
+Judul asli:
+"{judul_asli}"
+
+Judul hook versi Gen Z:
+"""
+response = ollama.chat(model="mistral", prompt=prompt)
+```
+
+
+### Rekomendasi komentar berita
+
+
+- Buat komentar mengandung *critical thinking keywords* atau *diskusi memancing* (misal: “tapi menurutku…”, “gimana kalau…”, “kenapa gak…”, “masalahnya itu…”, “solusinya apa dong…”), maka fitur AI aktif.
+- Buat beberapa opsi komentar
+
+**2. AI dari Ollama aktif memberikan:**
+- Rekomendasi konten lanjutan.
+- Insight tambahan.
+- Pertanyaan lanjutan buat memperdalam diskusi.
+
+**3. Model yang bisa dipakai via Ollama:**
+- `llama2-chat` atau `mistral` cocok buat interaksi ringan dan responsif ala Gen Z.
+- Bisa diset `personality`-nya jadi sarkas, sopan, atau geeky—sesuai branding kamu.
+
+**4. Contoh kode prompt ke Ollama (pseudo code):**
+```python
+prompt = f"""
+Kamu adalah AI penasaran yang hanya akan merespons ketika ada komentar kritis dan mengundang diskusi.
+Komentar: "{user_comment}"
+
+Tanggapi komentar itu dengan:
+1. Insight tambahan.
+2. Pertanyaan lanjutan.
+3. Jangan terlalu panjang.
+4. Gaya bahasanya santai, sesuai Gen Z.
+"""
+
+response = ollama.chat(model='mistral', prompt=prompt)
+```
+
+---
+
+Kalau kamu mau, aku bisa bantu buat script/logic-nya sekalian pakai bahasa yang kamu mau (Python, Node.js, dsb). Atau mau dijadikan *plugin sederhana* buat social media tertentu juga bisa.
+
+Mau dijadikan sistem kayak plugin Youtube comment/Instagram/TikTok/Blog juga?
